@@ -192,6 +192,10 @@ def _get_png_tag(self, fnames, node):
     # Regex to get value and units
     vu = re.compile(r"(?P<value>\d+)\s*(?P<units>[a-zA-Z%]+)?")
 
+    # Scale
+    if 'scale' not in node:
+        node['scale'] = 100
+
     # Width
     if 'width' in node:
         m = vu.match(node['width'])
@@ -199,11 +203,11 @@ def _get_png_tag(self, fnames, node):
             raise PlantUmlError('Invalid width')
         else:
             m = m.groupdict()
-        w = int(m['value'])
+        w = int(m['value']) * node['scale'] / 100
         wu = m['units'] if m['units'] else 'px'
     else:
-        w = fw
-        wu = 'px'
+        w = ''
+        wu = 'auto'
 
     # Height
     if 'height' in node:
@@ -212,24 +216,20 @@ def _get_png_tag(self, fnames, node):
             raise PlantUmlError('Invalid height')
         else:
             m = m.groupdict()
-        h = int(m['value'])
+        h = int(m['value']) * node['scale'] / 100
         hu = m['units'] if m['units'] else 'px'
     else:
-        h = fh
-        hu = 'px'
+        h = ''
+        hu = 'auto'
 
-    # Scale
-    if 'scale' not in node:
-        node['scale'] = 100
-
-    return ('<a href="%s"><img src="%s" alt="%s" width="%s%s" height="%s%s"/>'
+    return ('<a href="%s"><img src="%s" alt="%s" style="width:%s%s; height:%s%s;"/>'
             '</a>\n'
             % (self.encode(refname),
                self.encode(refname),
                self.encode(alt),
-               self.encode(w * node['scale'] / 100),
+               self.encode(w),
                self.encode(wu),
-               self.encode(h * node['scale'] / 100),
+               self.encode(h),
                self.encode(hu)))
 
 def _get_svg_style(fname):
